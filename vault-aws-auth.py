@@ -239,7 +239,11 @@ def run():
     params = generate_vault_request(aws_access_key, aws_secret_key, aws_iam_role, awsIamServerId=vault_server_addr)
     # Now let's pass this request to vault to authenticate. Upon successful authentication, vault will return back
     # a client_token that can be used to write/read secrets as allowed by the policy
-    resp = vault_iam_login(vault_server_addr, vault_role, params)
+    if params:
+        resp = vault_iam_login(vault_server_addr, vault_role, params)
+    else:
+        print('error creating signed GetCallerIdentity request, exiting')
+        exit(0)
     if resp and resp.ok:
         print("successfully login to vault using aws iam authorization")
         client_token = resp.json()['auth']['client_token']

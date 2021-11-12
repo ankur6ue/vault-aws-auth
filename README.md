@@ -1,5 +1,7 @@
 ## Introduction 
-This project demonstrates using the aws auth method to authenticate to Hashicorp vault. In my setup, vault is installed on a AWS t2.micro EC2 instance. The python script included in this repo acts as the client and can be executed on your personal computer or on AWS. The python script sets up the required roles and policies on vault, authenticates using aws auth method, writes a simple secret and then reads it back to verify it matches the secret that was written. The interaction between the client and vault occurs entirely through REST API calls to make the data exchange transparent. 
+This project demonstrates using the [aws iam](https://www.vaultproject.io/docs/auth/aws) authentication method to authenticate to Hashicorp vault. I'll assume familiarity with basic concepts of using vault such as [policies](https://learn.hashicorp.com/tutorials/vault/policies) and [roles](https://www.vaultproject.io/docs/auth/approle) as well as their AWS counterparts - AWS IAM role, policy and trust relationship between an IAM Role and AWS user identity. 
+
+In my setup, vault is installed on an AWS t2.micro EC2 instance. The python script `vault-aws-auth.py` included in this repo acts as the client and can be executed on your personal computer or on AWS EC2 instance. The script creates the required roles and policies on vault, authenticates using aws auth method, writes a simple secret and then reads it back to verify it matches the secret that was written. The interaction between the client and vault occurs entirely through REST API calls to make the data exchange transparent. 
 
 ## Setup
 ### Vault setup
@@ -7,17 +9,24 @@ Let's first go through vault setup.
 - Launch a t2.micro EC2 instance using the AWS EC2 console
 - Select the Amazon Linux 2 AMI
 - In "Configure Instance Details", ensure Auto-assign Public IP is set to Enable, so that a public IP is assigned to your instance
-![](vault_instance_setup.png)
+![](images/vault_instance_setup.png)
 - Make sure you have the ssh key to ssh into the instance 
 - Once the instance is up and running, modify the security group Inbound Rules to allow TCP traffic on port 8200, the default port used by vault
-![](vault_server_sg_setting.png)
+![](images/vault_server_sg_setting.png)
 - Attach an IAM Role to the instance with the following policy attached
-![](vault_instance_iam_role.png)
-![](vault_ec2_policy.png)
+![](images/vault_instance_iam_role.png)
+![](images/vault_ec2_policy.png)
  
-  iam:GetUser and iam:GetRole are used to determine the AWS [IAM Unique Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-unique-ids) corresponding to an IAM role or IAM user or when using a wildcard on the bound ARN to resolve the full ARN of the user or role.
+  Out of these, only GetUser and GetRole are really necessary. iam:GetUser and iam:GetRole are used to determine the AWS [IAM Unique Identifiers](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-unique-ids) corresponding to an IAM role or IAM user or when using a wildcard on the bound ARN to resolve the full ARN of the user or role.
 - ssh into your ec2 instance (ec2-user is the default user on AWS) and install vault using instructions [here](https://learn.hashicorp.com/tutorials/vault/getting-started-install?in=vault/getting-started)
-- Deploy vault using instructions [here](https://learn.hashicorp.com/tutorials/vault/getting-started-deploy?in=vault/getting-started)
+- Deploy vault using instructions [here](https://learn.hashicorp.com/tutorials/vault/getting-started-deploy?in=vault/getting-started). I modified the listener setting in config.hcl to ensure the vault server is accessible from outside, like this:
+```angular2
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = "true"
+}
+```
+
 - Copy the root vault token shown during deployment. You can also create a new root token using `vault token create`
 - Enable the vault secrets engine 
 ```angular2
