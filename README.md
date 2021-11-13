@@ -50,7 +50,7 @@ Vault's aws iam authentication validates an authorization request by verifying t
 With the above in mind, next step is to create an IAM Role that you are able to assume. This IAM role is only used to establish a caller identity and doesn't need to have any policies attached to it. It just needs to have a trust relationship to your aws user. So create a IAM role using AWS IAM console and create a trust relationship with your aws user
 
 ### Running the script
-Fill in vault_settings.cfg with the following settings:
+Create a vault_settings.cfg with the following settings:
 ```angular2
 [DEFAULT]
 VAULT_ADDR = http://<your vault server public ip>:8200
